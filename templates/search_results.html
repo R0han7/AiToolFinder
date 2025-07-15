@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}
+Search Results{% if query %} for "{{ query }}"{% endif %} - AI Tools Directory
+{% endblock %}
+
+{% block content %}
+<!-- Search Header -->
+<section class="py-4 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="h3 mb-4">
+                    {% if query %}
+                        Search Results for "{{ query }}"
+                    {% else %}
+                        Browse AI Tools
+                    {% endif %}
+                </h1>
+                
+                <!-- Search Form -->
+                <form action="{{ url_for('search') }}" method="GET" class="mb-4">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <input type="text" name="q" class="form-control" placeholder="Search tools..." 
+                                   value="{{ query }}">
+                        </div>
+                        <div class="col-md-3">
+                            <select name="department" class="form-select">
+                                <option value="">All Departments</option>
+                                {% for dept in departments %}
+                                <option value="{{ dept }}" {% if dept == selected_department %}selected{% endif %}>
+                                    {{ dept }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select name="category" class="form-select">
+                                <option value="">All Categories</option>
+                                {% for cat in categories %}
+                                <option value="{{ cat }}" {% if cat == selected_category %}selected{% endif %}>
+                                    {{ cat }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                
+                <!-- Results Info -->
+                <div class="d-flex justify-content-between align-items-center">
+                    <p class="mb-0 text-muted">
+                        Found {{ tools.total }} tools
+                        {% if tools.pages > 1 %}
+                        (Page {{ tools.page }} of {{ tools.pages }})
+                        {% endif %}
+                    </p>
+                    
+                    <!-- Active Filters -->
+                    <div class="active-filters">
+                        {% if selected_department %}
+                        <span class="badge bg-primary me-1">
+                            Department: {{ selected_department }}
+                            <a href="{{ url_for('search', q=query, category=selected_category) }}" 
+                               class="text-white ms-1">×</a>
+                        </span>
+                        {% endif %}
+                        {% if selected_category %}
+                        <span class="badge bg-secondary me-1">
+                            Category: {{ selected_category }}
+                            <a href="{{ url_for('search', q=query, department=selected_department) }}" 
+                               class="text-white ms-1">×</a>
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Results Section -->
+<section class="py-5">
+    <div class="container">
+        {% if tools.items %}
+        <div class="row">
+            {% for tool in tools.items %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card tool-card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="card-title mb-0">{{ tool.name }}</h5>
+                            {% if tool.reference_url %}
+                            <a href="{{ tool.reference_url }}" target="_blank" 
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {% if tool.department %}
+                            {% for dept in tool.get_departments_list()[:2] %}
+                            <span class="badge bg-primary me-1">{{ dept }}</span>
+                            {% endfor %}
+                            {% endif %}
+                            {% if tool.category %}
+                            {% for cat in tool.get_categories_list()[:2] %}
+                            <span class="badge bg-secondary me-1">{{ cat }}</span>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                        
+                        <p class="card-text text-muted">
+                            {% if tool.overview %}
+                                {{ tool.overview[:150] }}{% if tool.overview|length > 150 %}...{% endif %}
+                            {% else %}
+                                No description available.
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a href="{{ url_for('tool_detail', tool_id=tool.id) }}" 
+                           class="btn btn-primary btn-sm">
+                            Learn More <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if tools.pages > 1 %}
+        <nav aria-label="Search results pagination" class="mt-5">
+            <ul class="pagination justify-content-center">
+                {% if tools.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('search', q=query, department=selected_department, category=selected_category, page=tools.prev_num) }}">
+                        Previous
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for page_num in tools.iter_pages() %}
+                {% if page_num %}
+                {% if page_num != tools.page %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('search', q=query, department=selected_department, category=selected_category, page=page_num) }}">
+                        {{ page_num }}
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item active">
+                    <span class="page-link">{{ page_num }}</span>
+                </li>
+                {% endif %}
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+                {% endif %}
+                {% endfor %}
+                
+                {% if tools.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('search', q=query, department=selected_department, category=selected_category, page=tools.next_num) }}">
+                        Next
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+        {% else %}
+        <!-- No Results -->
+        <div class="text-center py-5">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <h3 class="text-muted">No tools found</h3>
+            <p class="text-muted">
+                Try adjusting your search criteria or 
+                <a href="{{ url_for('search') }}">browse all tools</a>.
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

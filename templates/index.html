@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}AI Tools Directory - Discover the Best AI Tools{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section bg-gradient-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">
+                    Discover the Best AI Tools
+                </h1>
+                <p class="lead mb-4">
+                    Find the perfect AI solution for your needs. Search through our comprehensive directory of AI tools for research, writing, design, and more.
+                </p>
+                
+                <!-- Search Form -->
+                <form action="{{ url_for('search') }}" method="GET" class="search-form">
+                    <div class="input-group input-group-lg">
+                        <input type="text" name="q" class="form-control" placeholder="Search AI tools..." 
+                               value="{{ request.args.get('q', '') }}">
+                        <button class="btn btn-light" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-image text-center">
+                    <i class="fas fa-robot display-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Filter Chips Section -->
+<section class="py-4 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="mb-3">Popular Departments:</h6>
+                <div class="filter-chips">
+                    {% for dept in departments[:8] %}
+                    <a href="{{ url_for('search', department=dept) }}" class="badge bg-primary text-decoration-none me-2 mb-2">
+                        {{ dept }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h6 class="mb-3">Popular Categories:</h6>
+                <div class="filter-chips">
+                    {% for cat in categories[:8] %}
+                    <a href="{{ url_for('search', category=cat) }}" class="badge bg-secondary text-decoration-none me-2 mb-2">
+                        {{ cat }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Tools Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="text-center mb-5">Featured AI Tools</h2>
+            </div>
+        </div>
+        
+        <div class="row">
+            {% for tool in featured_tools %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card tool-card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="card-title mb-0">{{ tool.name }}</h5>
+                            {% if tool.reference_url %}
+                            <a href="{{ tool.reference_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {% if tool.department %}
+                            <span class="badge bg-primary me-1">{{ tool.department.split(',')[0].strip() }}</span>
+                            {% endif %}
+                            {% if tool.category %}
+                            <span class="badge bg-secondary">{{ tool.category.split(',')[0].strip() }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <p class="card-text text-muted">
+                            {{ tool.overview[:120] }}{% if tool.overview|length > 120 %}...{% endif %}
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a href="{{ url_for('tool_detail', tool_id=tool.id) }}" class="btn btn-primary btn-sm">
+                            Learn More <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="{{ url_for('search') }}" class="btn btn-outline-primary btn-lg">
+                Browse All Tools <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-4">
+                <div class="stat-item">
+                    <i class="fas fa-robot fa-3x text-primary mb-3"></i>
+                    <h3 class="fw-bold" id="tools-count">-</h3>
+                    <p class="text-muted">AI Tools</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-item">
+                    <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                    <h3 class="fw-bold">{{ departments|length }}</h3>
+                    <p class="text-muted">Departments</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-item">
+                    <i class="fas fa-tags fa-3x text-primary mb-3"></i>
+                    <h3 class="fw-bold">{{ categories|length }}</h3>
+                    <p class="text-muted">Categories</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Load tools count
+fetch('/api/tools/count')
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('tools-count').textContent = data.count;
+    })
+    .catch(error => {
+        console.error('Error loading tools count:', error);
+        document.getElementById('tools-count').textContent = '50+';
+    });
+</script>
+{% endblock %}
