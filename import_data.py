@@ -22,7 +22,7 @@ def clean_url(url):
 
 def import_csv_data():
     """Import AI tools data from CSV file"""
-    csv_file_path = 'attached_assets/Guide to AI Tools 230a5ed5fb8d80678183c5fdf6fafa09_1752587490648.csv'
+    csv_file_path = 'attached_assets/Guide to AI Tools 230a5ed5fb8d80678183c5fdf6fafa09_1752588089851.csv'
     
     if not os.path.exists(csv_file_path):
         print(f"CSV file not found: {csv_file_path}")
