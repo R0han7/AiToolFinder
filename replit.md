@@ -36,6 +36,11 @@ Preferred communication style: Simple, everyday language.
 - **Home Route** (`/`): Displays featured tools and filter options
 - **Search Route** (`/search`): Handles tool search with pagination and filtering
 - **Tool Detail Route** (`/tool/<int:id>`): Shows individual tool details
+- **Admin Dashboard** (`/admin`): Admin overview with statistics and quick actions
+- **Admin Tools** (`/admin/tools`): Paginated list of all tools with management actions
+- **Add Tool** (`/admin/tools/add`): Form to add new AI tools to the database
+- **Edit Tool** (`/admin/tools/edit/<int:id>`): Form to edit existing tool information
+- **Delete Tool** (`/admin/tools/delete/<int:id>`): POST route to delete tools from database
 
 ### Templates
 - **Base Template**: Common layout with navigation and Bootstrap integration
@@ -118,3 +123,10 @@ Preferred communication style: Simple, everyday language.
 - CSV import functionality for bulk data loading
 - Data validation and cleaning
 - Efficient database indexing for search performance
+
+### Admin Management System
+- **Admin Dashboard**: Overview of tools, departments, and categories statistics
+- **Tool Management**: Add, edit, and delete AI tools with form validation
+- **Real-time Updates**: Changes are immediately reflected in the database and public site
+- **Data Integrity**: Duplicate name validation and URL cleaning
+- **User-friendly Interface**: Bootstrap-styled forms with error handling and success messages

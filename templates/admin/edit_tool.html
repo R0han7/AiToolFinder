@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Edit {{ tool.name }} - AI Tools Directory{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>Edit AI Tool: {{ tool.name }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <form method="POST">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Tool Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="name" name="name" required
+                                           value="{{ request.form.get('name', tool.name) }}" 
+                                           placeholder="e.g., ChatGPT">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="reference_url" class="form-label">Website URL</label>
+                                    <input type="url" class="form-control" id="reference_url" name="reference_url"
+                                           value="{{ request.form.get('reference_url', tool.reference_url or '') }}" 
+                                           placeholder="https://example.com">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="department" class="form-label">Department(s)</label>
+                                    <input type="text" class="form-control" id="department" name="department"
+                                           value="{{ request.form.get('department', tool.department or '') }}" 
+                                           placeholder="e.g., General, Marketing, Admin">
+                                    <div class="form-text">Separate multiple departments with commas</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="category" class="form-label">Category/Categories</label>
+                                    <input type="text" class="form-control" id="category" name="category"
+                                           value="{{ request.form.get('category', tool.category or '') }}" 
+                                           placeholder="e.g., Research, Writing, Design">
+                                    <div class="form-text">Separate multiple categories with commas</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="overview" class="form-label">Description</label>
+                            <textarea class="form-control" id="overview" name="overview" rows="4"
+                                      placeholder="Describe what this AI tool does and its key features...">{{ request.form.get('overview', tool.overview or '') }}</textarea>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('admin_tools') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Tools
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save me-2"></i>Update Tool
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

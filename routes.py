@@ -135,6 +135,165 @@ def not_found(error):
     """Handle 404 errors"""
     return render_template('404.html'), 404
 
+@app.route('/admin')
+def admin_dashboard():
+    """Admin dashboard"""
+    total_tools = AITool.query.count()
+    
+    # Get department and category counts
+    departments = db.session.query(AITool.department).distinct().filter(
+        AITool.department.isnot(None)
+    ).all()
+    categories = db.session.query(AITool.category).distinct().filter(
+        AITool.category.isnot(None)
+    ).all()
+    
+    # Process to get unique count
+    dept_set = set()
+    cat_set = set()
+    
+    for dept in departments:
+        if dept[0]:
+            for d in dept[0].split(','):
+                dept_set.add(d.strip())
+    
+    for cat in categories:
+        if cat[0]:
+            for c in cat[0].split(','):
+                cat_set.add(c.strip())
+    
+    return render_template('admin/dashboard.html', 
+                         total_tools=total_tools,
+                         total_departments=len(dept_set),
+                         total_categories=len(cat_set))
+
+@app.route('/admin/tools')
+def admin_tools():
+    """Admin page to manage tools"""
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    
+    tools = AITool.query.paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    
+    return render_template('admin/tools.html', tools=tools)
+
+@app.route('/admin/tools/add', methods=['GET', 'POST'])
+def add_tool():
+    """Add a new AI tool"""
+    if request.method == 'POST':
+        try:
+            # Get form data
+            name = request.form.get('name', '').strip()
+            department = request.form.get('department', '').strip()
+            category = request.form.get('category', '').strip()
+            overview = request.form.get('overview', '').strip()
+            reference_url = request.form.get('reference_url', '').strip()
+            
+            # Validate required fields
+            if not name:
+                flash('Tool name is required', 'error')
+                return render_template('admin/add_tool.html')
+            
+            # Check if tool already exists
+            existing_tool = AITool.query.filter_by(name=name).first()
+            if existing_tool:
+                flash('A tool with this name already exists', 'error')
+                return render_template('admin/add_tool.html')
+            
+            # Clean URL
+            if reference_url and not reference_url.startswith('http'):
+                reference_url = 'https://' + reference_url
+            
+            # Create new tool
+            new_tool = AITool(
+                name=name,
+                department=department if department else None,
+                category=category if category else None,
+                overview=overview if overview else None,
+                reference_url=reference_url if reference_url else None
+            )
+            
+            db.session.add(new_tool)
+            db.session.commit()
+            
+            flash('Tool added successfully!', 'success')
+            return redirect(url_for('admin_tools'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error adding tool: {str(e)}', 'error')
+            return render_template('admin/add_tool.html')
+    
+    return render_template('admin/add_tool.html')
+
+@app.route('/admin/tools/edit/<int:tool_id>', methods=['GET', 'POST'])
+def edit_tool(tool_id):
+    """Edit an existing AI tool"""
+    tool = AITool.query.get_or_404(tool_id)
+    
+    if request.method == 'POST':
+        try:
+            # Get form data
+            name = request.form.get('name', '').strip()
+            department = request.form.get('department', '').strip()
+            category = request.form.get('category', '').strip()
+            overview = request.form.get('overview', '').strip()
+            reference_url = request.form.get('reference_url', '').strip()
+            
+            # Validate required fields
+            if not name:
+                flash('Tool name is required', 'error')
+                return render_template('admin/edit_tool.html', tool=tool)
+            
+            # Check if another tool with the same name exists
+            existing_tool = AITool.query.filter(
+                AITool.name == name,
+                AITool.id != tool_id
+            ).first()
+            if existing_tool:
+                flash('A tool with this name already exists', 'error')
+                return render_template('admin/edit_tool.html', tool=tool)
+            
+            # Clean URL
+            if reference_url and not reference_url.startswith('http'):
+                reference_url = 'https://' + reference_url
+            
+            # Update tool
+            tool.name = name
+            tool.department = department if department else None
+            tool.category = category if category else None
+            tool.overview = overview if overview else None
+            tool.reference_url = reference_url if reference_url else None
+            
+            db.session.commit()
+            
+            flash('Tool updated successfully!', 'success')
+            return redirect(url_for('admin_tools'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating tool: {str(e)}', 'error')
+            return render_template('admin/edit_tool.html', tool=tool)
+    
+    return render_template('admin/edit_tool.html', tool=tool)
+
+@app.route('/admin/tools/delete/<int:tool_id>', methods=['POST'])
+def delete_tool(tool_id):
+    """Delete an AI tool"""
+    tool = AITool.query.get_or_404(tool_id)
+    
+    try:
+        db.session.delete(tool)
+        db.session.commit()
+        flash('Tool deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting tool: {str(e)}', 'error')
+    
+    return redirect(url_for('admin_tools'))
+
 @app.errorhandler(500)
 def internal_error(error):
     """Handle 500 errors"""
