@@ -77,6 +77,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Database
 - **PostgreSQL**: Primary database hosted on Neon (cloud PostgreSQL service)
+- **Connection String**: Using custom Neon database URL for persistent storage
 - **Connection Pooling**: Configured with pool recycling and pre-ping for reliability
 
 ## Deployment Strategy
